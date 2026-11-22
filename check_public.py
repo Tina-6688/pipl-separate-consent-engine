@@ -266,6 +266,37 @@ def main() -> int:
         rc2, n, _ = git("rev-list", "--branches", "--remotes", "--count")
         print("  OK    历史 %s 个提交，提交信息干净" % (n.strip() or "?"))
 
+    # ---- 6 ----
+    print("\n[6] 文档引用的提交 SHA（能否在本仓库解析）")
+    HEX = re.compile(r"(?<![0-9A-Za-z])([0-9a-f]{7,40})(?![0-9A-Za-z])")
+    CTX = ("提交", "commit", "基线", "HEAD")
+    SKIP_CTX = ("SHA256", "sha256", "哈希", "校验值", "blob", "SHA-1", "sha1", "SHA-1")
+    checked = 0
+    sha_bad = []
+    for f in text_files:
+        txt = read_text(os.path.join(HERE, f.replace("/", os.sep)))
+        for m in HEX.finditer(txt):
+            sha = m.group(1)
+            if not re.search(r"[a-f]", sha):      # 纯数字多为日期/编号，跳过
+                continue
+            a, b = max(0, m.start() - 70), min(len(txt), m.end() + 70)
+            ctx = txt[a:b]
+            if any(k in ctx for k in SKIP_CTX):
+                continue
+            if not any(k in ctx for k in CTX):
+                continue
+            checked += 1
+            rc, _, _ = git("cat-file", "-e", sha)
+            if rc != 0:
+                sha_bad.append((f, sha, ctx.replace("\n", " ")))
+    if sha_bad:
+        for f, sha, ctx in sha_bad:
+            problems.append("文档引用了本仓库不存在的提交 %s（%s）" % (sha, f))
+            print("  FAIL  %s  %s" % (sha, f))
+            print("        ...%s..." % ctx[:120])
+    else:
+        print("  OK    检查 %d 处引用，全部可解析" % checked)
+
     print("\n" + "=" * 62)
     if problems:
         print("结论：[FAIL] 有 %d 处需要处理，先不要公开" % len(problems))

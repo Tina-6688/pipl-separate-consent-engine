@@ -159,13 +159,6 @@ python build_demo.py
 python run_cases.py S4
 ```
 
-### 直接评估一段输入
-
-```bash
-echo '{"存在个人信息处理行为": true, "对外提供": true}' > in.json
-python engine.py in.json
-```
-
 ---
 
 ## 三个核心设计
@@ -280,7 +273,7 @@ PIPL-29-01:separate_consent  未满足
 ```
 build_demo.py
    ├── 读 rules/*.yaml
-   ├── 读 cases/golden_cases.json
+   ├── 读 cases/golden_cases_v1.1.json
    ├── 用 engine.py 跑一遍（Python 算好所有结果）
    └── 输出 demo.html（把结果作为 JSON 内嵌）
              ↓
@@ -351,7 +344,7 @@ python validate.py
 | 9 | **渲染** | node + 最小 DOM 桩真跑一遍 buildNav/showCase | 3 |
 | 10 | **覆盖度** | 判「合规」者必须完整判定（陷阱1）；每个 action 至少被走到一次（陷阱5） | 4 |
 
-> 第 10 项对应 `规则集自检_七类陷阱与检查方法_v1.0.md` 里最危险的两类问题。
+> 第 10 项防的是两类最危险的问题：①**判了「合规」但其实没判定完整**；②**某条规则的某个分支从未被执行过**（死代码风险）。
 
 ### 常用参数
 
@@ -437,22 +430,20 @@ node test_demo_render.js
 
 ### 外部依赖缺失怎么办
 
-`yaml_audit.py` 和法条 docx 在「三法盲评发布包」里，默认路径写在 `validate.py` 顶部：
+这两个外部依赖**默认留空**——没设环境变量就跳过对应检查，**不写死任何默认路径**，所以换机器也不会因为路径不存在而报错。
 
-```python
-AUDIT_TOOL = r"...\作品集_三法法律AI盲评\发布包v2.1\tools\yaml_audit.py"
-LAW_DOCX   = r"...\个保法\中华人民共和国个人信息保护法_20210820.docx"
-```
-
-**路径不存在时记 SKIP，不记 FAIL** —— 换机器也能跑通其余检查。
-
-**不想改代码就设环境变量**：
+| 环境变量 | 指向 | 缺省时 |
+|---|---|---|
+| `COMPLIANCE_AUDIT_TOOL` | 外部 `yaml_audit.py`（法条 YAML 质量体检工具，不在本仓库） | 该项 SKIP |
+| `COMPLIANCE_LAW_DOCX` | 官方个保法 docx（引文逐字交叉核对用） | 该项 SKIP |
 
 ```powershell
 $env:COMPLIANCE_AUDIT_TOOL = "path\to\yaml_audit.py"
 $env:COMPLIANCE_LAW_DOCX   = "path\to\个人信息保护法.docx"
 python validate.py
 ```
+
+**两个都缺省时**：`OK 90 / FAIL 0 / SKIP 1`；**都配齐时**：`OK 92 / FAIL 0 / SKIP 0`。
 
 ---
 
