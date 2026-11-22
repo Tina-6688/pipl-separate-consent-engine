@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>个保法「单独同意」规则引擎 · 演示 v0.2</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #f5f6f8; color: #1f2328;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: 14px; line-height: 1.6;
+  }
+  header {
+    background: #1f2328; color: #fff; padding: 18px 24px;
+    position: sticky; top: 0; z-index: 10;
+  }
+  header h1 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: .3px; }
+  header .sub { margin-top: 4px; font-size: 12px; color: #a8b1bb; }
+  header .badge-demo {
+    display: inline-block; margin-left: 8px; padding: 1px 7px;
+    background: #3d444d; color: #d0d7de; border-radius: 10px; font-size: 11px; vertical-align: 2px;
+  }
+  .wrap { display: flex; max-width: 1280px; margin: 0 auto; gap: 18px; padding: 18px; align-items: flex-start; }
+  aside {
+    width: 250px; flex: 0 0 250px; background: #fff; border: 1px solid #d8dee4;
+    border-radius: 8px; padding: 10px; position: sticky; top: 78px; max-height: calc(100vh - 100px); overflow-y: auto;
+  }
+  aside h2 { font-size: 12px; color: #57606a; margin: 8px 6px 6px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 7px; padding: 7px 9px; border-radius: 6px;
+    cursor: pointer; font-size: 13px; color: #1f2328; border: none; background: none; width: 100%; text-align: left;
+  }
+  .nav-item:hover { background: #eef1f4; }
+  .nav-item.active { background: #0969da; color: #fff; }
+  .nav-item .id { font-weight: 600; font-family: ui-monospace, Consolas, monospace; font-size: 12px; min-width: 26px; }
+  .nav-item .dot { width: 7px; height: 7px; border-radius: 50%; flex: 0 0 7px; }
+  .dot.red { background: #cf222e; } .dot.green { background: #1a7f37; }
+  .dot.gray { background: #8c959f; } .dot.amber { background: #bf8700; }
+  .nav-item.active .dot { outline: 1px solid rgba(255,255,255,.6); }
+
+  main { flex: 1; min-width: 0; }
+  .card {
+    background: #fff; border: 1px solid #d8dee4; border-radius: 8px; padding: 16px 18px; margin-bottom: 14px;
+  }
+  .card h3 {
+    margin: 0 0 12px; font-size: 13px; font-weight: 600; color: #57606a;
+    text-transform: uppercase; letter-spacing: .5px;
+  }
+  .case-head { display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+  .case-head .title { font-size: 16px; font-weight: 600; }
+  .case-head .desc { color: #57606a; margin-top: 2px; }
+  .pills { display: flex; gap: 7px; margin-top: 10px; flex-wrap: wrap; }
+  .pill {
+    padding: 2px 10px; border-radius: 11px; font-size: 12px; font-weight: 600; border: 1px solid transparent;
+  }
+  .pill.state-evaluated { background: #ddf4ff; color: #0969da; border-color: #b6e3ff; }
+  .pill.state-not_applicable { background: #eaeef2; color: #57606a; border-color: #d8dee4; }
+  .pill.state-uncovered { background: #fff8c5; color: #7d4e00; border-color: #f0dfA0; }
+  .pill.v-pass { background: #dafbe1; color: #1a7f37; border-color: #a6e3b8; }
+  .pill.v-fail { background: #ffebe9; color: #cf222e; border-color: #ffc9c4; }
+  .pill.v-na { background: #eaeef2; color: #57606a; border-color: #d8dee4; }
+  .pill.cov-full { background: #dafbe1; color: #1a7f37; border-color: #a6e3b8; }
+  .pill.cov-part { background: #fff1c2; color: #7d4e00; border-color: #eed78a; }
+  .cov-warn {
+    margin-top: 10px; padding: 8px 11px; border-radius: 6px; font-size: 12.5px;
+    background: #fff8c5; border: 1px solid #f0dfa0; color: #7d4e00;
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #eaeef2; vertical-align: top; }
+  th { color: #57606a; font-weight: 600; font-size: 12px; background: #f6f8fa; }
+  td.mono { font-family: ui-monospace, Consolas, monospace; font-size: 12px; }
+  .yes { color: #1a7f37; font-weight: 600; }
+  .no { color: #cf222e; font-weight: 600; }
+  .na { color: #8c959f; }
+
+  .rule { border: 1px solid #d8dee4; border-radius: 7px; margin-bottom: 10px; overflow: hidden; }
+  .rule-hd {
+    display: flex; align-items: center; gap: 9px; padding: 10px 12px; background: #f6f8fa; flex-wrap: wrap;
+  }
+  .rule-hd .rid { font-family: ui-monospace, Consolas, monospace; font-weight: 600; font-size: 13px; }
+  .rule-hd .rtitle { color: #57606a; font-size: 13px; }
+  .rule-hd .art { margin-left: auto; font-size: 12px; color: #8c959f; }
+  .act { display: flex; gap: 10px; padding: 9px 12px; border-top: 1px solid #eaeef2; align-items: flex-start; }
+  .act .st { flex: 0 0 auto; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 4px; margin-top: 1px; }
+  .st.met { background: #dafbe1; color: #1a7f37; }
+  .st.unmet { background: #ffebe9; color: #cf222e; }
+  .st.subsumed { background: #eaeef2; color: #57606a; }
+  .st.not_required { background: #eaeef2; color: #8c959f; }
+  .act .body { flex: 1; min-width: 0; }
+  .act .label { font-weight: 500; }
+  .act .miss { margin-top: 5px; padding-left: 14px; color: #cf222e; font-size: 12px; }
+  .act .miss li { margin: 1px 0; }
+  .act .note { margin-top: 5px; color: #8c959f; font-size: 12px; }
+
+  ol.missing { margin: 0; padding-left: 22px; }
+  ol.missing li { margin: 3px 0; }
+
+  details { border: 1px solid #d8dee4; border-radius: 7px; margin-bottom: 8px; background: #fbfcfd; }
+  details > summary {
+    padding: 9px 12px; cursor: pointer; font-size: 13px; list-style: none; display: flex; gap: 9px; align-items: center;
+  }
+  details > summary::-webkit-details-marker { display: none; }
+  details > summary::before { content: "▸"; color: #8c959f; font-size: 11px; }
+  details[open] > summary::before { content: "▾"; }
+  details .inner { padding: 0 12px 12px; }
+  .reason { font-size: 12px; color: #8c959f; margin: 0 0 6px; }
+
+  blockquote {
+    margin: 0 0 10px; padding: 10px 14px; background: #f6f8fa;
+    border-left: 3px solid #0969da; border-radius: 0 6px 6px 0; font-size: 13px; color: #1f2328;
+  }
+  blockquote .src { font-size: 12px; color: #57606a; margin-bottom: 4px; font-weight: 600; }
+
+  footer {
+    max-width: 1280px; margin: 0 auto; padding: 18px 18px 40px; color: #8c959f; font-size: 12px; line-height: 1.8;
+  }
+  footer strong { color: #57606a; }
+  .warn { background: #fff8c5; border: 1px solid #f0dfa0; border-radius: 6px; padding: 9px 12px; font-size: 12.5px; color: #7d4e00; }
+
+  .nav-group {
+    font-size: 11px; color: #8c959f; font-weight: 600; letter-spacing: .4px;
+    padding: 10px 9px 4px; margin-top: 2px;
+  }
+  .nav-item .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* ---------- 窄屏：左右改上下 ---------- */
+  @media (max-width: 860px) {
+    .wrap { flex-direction: column; padding: 12px; gap: 12px; }
+    aside {
+      width: 100%; flex: 0 0 auto; position: static; max-height: 40vh;
+      overflow-y: auto; display: flex; flex-wrap: wrap; gap: 4px;
+    }
+    aside h2 { width: 100%; }
+    .nav-group { width: 100%; }
+    .nav-item { width: auto; flex: 1 1 auto; min-width: 108px; }
+    header { padding: 14px 14px; }
+    header h1 { font-size: 15px; }
+    .card { padding: 13px 13px; }
+    .rule-hd .art { margin-left: 0; width: 100%; }
+    .act { flex-wrap: wrap; }
+  }
+  @media (max-width: 480px) {
+    .nav-item { min-width: 100%; }
+    body { font-size: 13px; }
+    blockquote { padding: 8px 11px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>个人信息保护法「单独同意」规则引擎 <span class="badge-demo">演示版 v0.2</span></h1>
+  <div class="sub">纯规则判定 · 不接 LLM · 每条结论都可回溯到法条原文</div>
+</header>
+
+<div class="wrap">
+  <aside>
+    <h2>演示场景</h2>
+    <div id="nav"></div>
+  </aside>
+  <main id="main"></main>
+</div>
+
+<footer>
+  <p class="warn">
+    ⚠️ 本页面是<b>技术演示</b>，不是法律意见。判定结果由规则引擎按《个人信息保护法》第 13/17/23/25/29/30/39 条计算得出，
+    但<b>法律适用需专业人士逐案判断</b>。规则集只覆盖「单独同意」相关场景，未覆盖场景一律输出「未覆盖·转人工」，绝不默认合规。
+  </p>
+  <p>
+    <strong>规则版本</strong> <span id="f-rules"></span> ·
+    <strong>生成时间</strong> <span id="f-time"></span> ·
+    <strong>引擎</strong> v0.1
+  </p>
+  <p>
+    页面为纯静态单文件，不含任何网络请求与外部依赖；判定逻辑全部在 Python 侧完成，本页只负责渲染。
+  </p>
+</footer>
+
+<script>
+const DATA = __DATA__;
+
+const STATE_TEXT = {
+  evaluated: "已评估",
+  not_applicable: "不适用",
+  uncovered: "未覆盖"
+};
+const STATUS_TEXT = {
+  met: "满足", unmet: "未满足", subsumed: "已去重", not_required: "条件未成立"
+};
+
+function esc(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+function verdictClass(v) {
+  return v === "合规" ? "v-pass" : (v === "不合规" ? "v-fail" : "v-na");
+}
+function valCell(v) {
+  if (v === true) return '<span class="yes">是</span>';
+  if (v === false) return '<span class="no">否</span>';
+  return esc(v);
+}
+
+// ---------- 左侧导航 ----------
+function buildNav() {
+  const nav = document.getElementById("nav");
+  const groups = {};
+  DATA.cases.forEach(c => {
+    (groups[c.type] = groups[c.type] || []).push(c);
+  });
+  let html = "";
+  Object.keys(groups).forEach(g => {
+    // 分组标题
+    html += '<div class="nav-group">' + esc(g) + '</div>';
+    groups[g].forEach(c => {
+      const cls = c.result.verdict === "合规" ? "green"
+                : (c.result.verdict === "不合规" ? "red"
+                : (c.result.state === "uncovered" ? "amber" : "gray"));
+      html += '<button class="nav-item" data-id="' + esc(c.id) + '">'
+            + '<span class="dot ' + cls + '"></span>'
+            + '<span class="id">' + esc(c.id) + '</span>'
+            + '<span class="nm">' + esc(c.short) + '</span></button>';
+    });
+  });
+  nav.innerHTML = html;
+  nav.querySelectorAll(".nav-item").forEach(btn => {
+    btn.addEventListener("click", () => showCase(btn.dataset.id));
+  });
+}
+
+// ---------- 主体渲染 ----------
+function showCase(id) {
+  document.querySelectorAll(".nav-item").forEach(b => {
+    b.classList.toggle("active", b.dataset.id === id);
+  });
+  const c = DATA.cases.find(x => x.id === id);
+  if (!c) return;
+  const r = c.result;
+  let h = "";
+
+  // 头部
+  const cov = r.coverage || {};
+  const covCls = cov.complete ? "cov-full" : "cov-part";
+  h += '<div class="card"><div class="case-head"><div>'
+     + '<div class="title">' + esc(c.id) + ' · ' + esc(c.desc) + '</div>'
+     + '<div class="pills">'
+     + '<span class="pill state-' + r.state + '">' + (STATE_TEXT[r.state] || r.state) + '</span>'
+     + '<span class="pill ' + verdictClass(r.verdict) + '">'
+     + esc(r.verdict_qualified || r.verdict) + '</span>'
+     + '<span class="pill ' + covCls + '">已判定 ' + (cov.decided || 0) + '/' + (cov.total || 0) + ' 条规则</span>'
+     + '</div>';
+  if (cov.complete === false && r.state === "evaluated") {
+    h += '<div class="cov-warn">⚠️ 有 ' + cov.undetermined
+       + ' 条规则因触发字段缺失未能判定。本结论只覆盖已判定的 '
+       + cov.decided + ' 条，<b>不等于全部合规</b>。</div>';
+  }
+  h += '</div></div></div>';
+
+  // 输入字段
+  const keys = Object.keys(c.input);
+  h += '<div class="card"><h3>输入事实（' + keys.length + ' 项）</h3><table><thead><tr>'
+     + '<th style="width:42%">字段</th><th>值</th></tr></thead><tbody>';
+  keys.forEach(k => {
+    h += '<tr><td class="mono">' + esc(k) + '</td><td>' + valCell(c.input[k]) + '</td></tr>';
+  });
+  h += '</tbody></table></div>';
+
+  // 触发规则与义务
+  if (r.obligations && r.obligations.length) {
+    h += '<div class="card"><h3>触发的规则与义务（' + r.triggered_rules.length + ' 条规则）</h3>';
+    r.obligations.forEach(pr => {
+      const meta = DATA.rules[pr.rule_id] || {};
+      h += '<div class="rule"><div class="rule-hd">'
+         + '<span class="rid">' + esc(pr.rule_id) + '</span>'
+         + '<span class="rtitle">' + esc(meta.title || "") + '</span>'
+         + '<span class="art">' + esc(pr.article) + ' · ' + esc(meta.strength || "") + '</span>'
+         + '</div>';
+      pr.actions.forEach(a => {
+        h += '<div class="act"><span class="st ' + a.status + '">'
+           + (STATUS_TEXT[a.status] || a.status) + '</span><div class="body">'
+           + '<div class="label">' + esc(a.label) + '</div>';
+        if (a.missing && a.missing.length) {
+          h += '<ul class="miss">';
+          a.missing.forEach(m => { h += '<li>' + esc(m) + '</li>'; });
+          h += '</ul>';
+        }
+        if (a.note) h += '<div class="note">' + esc(a.note) + '</div>';
+        h += '</div></div>';
+      });
+      h += '</div>';
+    });
+    h += '</div>';
+  }
+
+  // 缺失材料
+  if (r.missing_materials && r.missing_materials.length) {
+    h += '<div class="card"><h3>缺失材料清单（去重后 ' + r.missing_materials.length + ' 项）</h3><ol class="missing">';
+    r.missing_materials.forEach(m => { h += '<li>' + esc(m) + '</li>'; });
+    h += '</ol></div>';
+  }
+
+  // 未触发 / 未判定（折叠，含原因）
+  if (r.inactive_detail && r.inactive_detail.length) {
+    h += '<div class="card"><h3>未触发 / 未判定的规则（' + r.inactive_detail.length + ' 条）</h3>';
+    r.inactive_detail.forEach(d => {
+      const meta = DATA.rules[d.rule_id] || {};
+      h += '<details><summary><span class="rid mono" style="font-weight:600">' + esc(d.rule_id)
+         + '</span><span style="color:#57606a">' + esc(meta.title || "")
+         + '</span><span style="margin-left:auto;color:#8c959f;font-size:12px">'
+         + esc(d.reason_text) + '</span></summary><div class="inner">';
+      if (d.condition && d.condition.length) {
+        h += '<table><thead><tr><th>触发字段</th><th>期望</th><th>实际</th><th>结果</th></tr></thead><tbody>';
+        d.condition.forEach(it => {
+          h += '<tr><td class="mono">' + esc(it.field) + '</td><td class="mono">'
+             + esc(it.expected) + '</td><td class="mono">'
+             + (it.present ? esc(it.actual) : '<span class="na">未提供</span>')
+             + '</td><td>' + (it.ok === true ? '<span class="yes">通过</span>'
+             : (it.ok === false ? '<span class="no">不通过</span>'
+             : '<span class="na">未知</span>')) + '</td></tr>';
+        });
+        h += '</tbody></table>';
+      }
+      if (meta.not_applicable && meta.not_applicable.length) {
+        h += '<p class="reason">不适用条件：' + meta.not_applicable.map(esc).join("；") + '</p>';
+      }
+      h += '</div></details>';
+    });
+    h += '</div>';
+  }
+
+  // 依据条文
+  const arts = {};
+  (r.triggered_rules || []).forEach(rid => {
+    const m = DATA.rules[rid];
+    if (m && m.quotes && m.quotes.length) arts[rid] = m;
+  });
+  if (Object.keys(arts).length) {
+    h += '<div class="card"><h3>依据条文（逐字取自官方文本）</h3>';
+    Object.keys(arts).forEach(rid => {
+      const m = arts[rid];
+      (m.quotes || []).forEach(q => {
+        h += '<blockquote><div class="src">' + esc(q.article) + '　' + esc(rid)
+           + (q.kind === "附加依据" ? ' · 附加依据' : '') + '</div>'
+           + esc(q.quote) + '</blockquote>';
+      });
+    });
+    h += '</div>';
+  }
+
+  // 说明
+  if (r.notes && r.notes.length) {
+    h += '<div class="card"><h3>引擎说明</h3><ul style="margin:0;padding-left:20px;color:#57606a">';
+    r.notes.forEach(n => { h += '<li>' + esc(n) + '</li>'; });
+    h += '</ul></div>';
+  }
+
+  document.getElementById("main").innerHTML = h;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+document.getElementById("f-rules").textContent = "v" + DATA.meta.rules_version;
+document.getElementById("f-time").textContent = DATA.meta.generated_at;
+buildNav();
+showCase(DATA.cases[0].id);
+</script>
+</body>
+</html>

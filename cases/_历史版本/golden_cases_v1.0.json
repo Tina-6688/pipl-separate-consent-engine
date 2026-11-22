@@ -1,0 +1,452 @@
+{
+  "meta": {
+    "version": "1.0",
+    "rules": "rules/pipl-separate-consent.yaml",
+    "source": "个保法规则核对_个人单独同意_v2.4.xlsx / GoldenCases",
+    "assertion": "按 action_id 断言，不依赖文案；missing_count 校验去重后的条目数",
+    "count": 14
+  },
+  "cases": [
+    {
+      "case_id": "S1",
+      "type": "正例·23条",
+      "desc": "把手机号提供给合作方做营销（基线已满足）",
+      "input": {
+        "存在个人信息处理行为": true,
+        "已取得个人同意": true,
+        "属于第13条第二至七项情形": false,
+        "已告知处理者名称或姓名和联系方式": true,
+        "已告知处理目的、处理方式、信息种类、保存期限": true,
+        "已告知个人行使权利的方式和程序": true,
+        "对外提供": true,
+        "接收方为其他个人信息处理者": true,
+        "信息属于个人信息": true,
+        "已告知接收方名称或姓名": false,
+        "已告知接收方联系方式": false,
+        "已告知接收方的处理目的": false,
+        "已告知接收方的处理方式": false,
+        "已告知接收方的信息种类": false,
+        "已取得单独同意": false,
+        "接收方在告知范围内处理": true
+      },
+      "expect": {
+        "state": "evaluated",
+        "verdict": "不合规",
+        "triggered": [
+          "PIPL-13-01",
+          "PIPL-23-01",
+          "PIPL-23-02"
+        ],
+        "unmet": [
+          "PIPL-23-01:notice_recipient",
+          "PIPL-23-01:separate_consent"
+        ],
+        "missing_count": 6,
+        "note": "基线已满足；23-01 缺接收方维度告知5项+单独同意；23-02 合规"
+      }
+    },
+    {
+      "case_id": "S2",
+      "type": "正例·25条禁止",
+      "desc": "在官网公开用户手机号，有一般同意但无单独同意",
+      "input": {
+        "存在个人信息处理行为": true,
+        "已取得个人同意": true,
+        "属于第13条第二至七项情形": false,
+        "已告知处理者名称或姓名和联系方式": true,
+        "已告知处理目的、处理方式、信息种类、保存期限": true,
+        "已告知个人行使权利的方式和程序": true,
+        "公开其处理的个人信息": true,
+        "已取得单独同意": false
+      },
+      "expect": {
+        "state": "evaluated",
+        "verdict": "不合规",
+        "triggered": [
+          "PIPL-13-01",
+          "PIPL-25-01"
+        ],
+        "unmet": [
+          "PIPL-25-01:no_publication"
+        ],
+        "missing_count": 1,
+        "note": "一般同意≠单独同意，第25条禁止仍成立"
+      }
+    },
+    {
+      "case_id": "S3",
+      "type": "正例·29/30条",
+      "desc": "收集指纹用于门禁，无单独同意",
+      "input": {
+        "存在个人信息处理行为": true,
+        "已取得个人同意": true,
+        "属于第13条第二至七项情形": false,
+        "已告知处理者名称或姓名和联系方式": true,
+        "已告知处理目的、处理方式、信息种类、保存期限": true,
+        "已告知个人行使权利的方式和程序": true,
+        "处理敏感个人信息": true,
+        "信息类型": "指纹",
+        "已取得单独同意": false,
+        "已告知处理必要性": false,
+        "已告知对个人权益的影响": false,
+        "属于可不告知情形": false,
+        "法律行政法规要求书面同意": false
+      },
+      "expect": {
+        "state": "evaluated",
+        "verdict": "不合规",
+        "triggered": [
+          "PIPL-13-01",
+          "PIPL-29-01",
+          "PIPL-30-01"
+        ],
+        "unmet": [
+          "PIPL-29-01:separate_consent",
+          "PIPL-30-01:extra_notice"
+        ],
+        "missing_count": 3,
+        "note": "敏感信息叠加义务"
+      }
+    },
+    {
+      "case_id": "S4",
+      "type": "★ 正例·跨境叠加",
+      "desc": "把用户信息传给境外母公司（母公司为独立处理者）",
+      "input": {
+        "存在个人信息处理行为": true,
+        "已取得个人同意": true,
+        "属于第13条第二至七项情形": false,
+        "已告知处理者名称或姓名和联系方式": true,
+        "已告知处理目的、处理方式、信息种类、保存期限": true,
+        "已告知个人行使权利的方式和程序": true,
+        "向境外提供个人信息": true,
+        "境外接收方为个人信息处理者": true,
+        "对外提供": true,
+        "接收方为其他个人信息处理者": true,
+        "信息属于个人信息": true,
+        "已告知境外接收方名称或姓名": false,
+        "已告知境外接收方联系方式": false,
+        "已告知境外接收方的处理目的": false,
+        "已告知境外接收方的处理方式": false,
+        "已告知境外接收方的信息种类": false,
+        "已告知向境外接收方行使权利的方式和程序": false,
+        "已告知接收方名称或姓名": false,
+        "已告知接收方联系方式": false,
+        "已告知接收方的处理目的": false,
+        "已告知接收方的处理方式": false,
+        "已告知接收方的信息种类": false,
+        "已取得单独同意": false,
+        "接收方在告知范围内处理": true
+      },
+      "expect": {
+        "state": "evaluated",
+        "verdict": "不合规",
+        "triggered": [
+          "PIPL-13-01",
+          "PIPL-39-01",
+          "PIPL-23-01",
+          "PIPL-23-02"
+        ],
+        "unmet": [
+          "PIPL-23-01:notice_recipient",
+          "PIPL-23-01:separate_consent",
+          "PIPL-39-01:notice_overseas",
+          "PIPL-39-01:separate_consent"
+        ],
+        "missing_count": 12,
+        "note": "跨境叠加：告知按对象分层（接收方5项+境外接收方6项），单独同意去重为1项；23-03 不触发（无变更）"
+      }
+    },
+    {
+      "case_id": "S5",
+      "type": "反例·明确不适用",
+      "desc": "统计公司办公设备数量，不涉及个人信息",
+      "input": {
+        "存在个人信息处理行为": false,
+        "场景": "统计办公设备数量，不涉及个人信息"
+      },
+      "expect": {
+        "state": "not_applicable",
+        "verdict": "不适用",
+        "triggered": [],
+        "unmet": [],
+        "missing_count": 0,
+        "note": "明确不适用：第4条"
+      }
+    },
+    {
+      "case_id": "S6",
+      "type": "例外·25条但书",
+      "desc": "公开个人信息但已取得单独同意",
+      "input": {
+        "存在个人信息处理行为": true,
+        "已取得个人同意": true,
+        "属于第13条第二至七项情形": false,
+        "已告知处理者名称或姓名和联系方式": true,
+        "已告知处理目的、处理方式、信息种类、保存期限": true,
+        "已告知个人行使权利的方式和程序": true,
+        "公开其处理的个人信息": true,
+        "已取得单独同意": true
+      },
+      "expect": {
+        "state": "evaluated",
+        "verdict": "合规",
+        "triggered": [
+          "PIPL-13-01",
+          "PIPL-25-01"
+        ],
+        "unmet": [],
+        "missing_count": 0,
+        "note": "第25条但书成立，规则仍输出并标注"
+      }
+    },
+    {
+      "case_id": "S7",
+      "type": "变更·23-03",
+      "desc": "接收方把用途从客服改为营销，未重新取得同意",
+      "input": {
+        "存在个人信息处理行为": true,
+        "已取得个人同意": true,
+        "属于第13条第二至七项情形": false,
+        "已告知处理者名称或姓名和联系方式": true,
+        "已告知处理目的、处理方式、信息种类、保存期限": true,
+        "已告知个人行使权利的方式和程序": true,
+        "对外提供": true,
+        "接收方为其他个人信息处理者": true,
+        "信息属于个人信息": true,
+        "接收方变更处理目的或处理方式": true,
+        "已重新取得个人同意": false,
+        "已告知接收方名称或姓名": true,
+        "已告知接收方联系方式": true,
+        "已告知接收方的处理目的": true,
+        "已告知接收方的处理方式": true,
+        "已告知接收方的信息种类": true,
+        "已取得单独同意": true,
+        "接收方在告知范围内处理": true
+      },
+      "expect": {
+        "state": "evaluated",
+        "verdict": "不合规",
+        "triggered": [
+          "PIPL-13-01",
+          "PIPL-23-01",
+          "PIPL-23-02",
+          "PIPL-23-03"
+        ],
+        "unmet": [
+          "PIPL-23-03:reconsent"
+        ],
+        "missing_count": 1,
+        "note": "23-01/23-02 因已告知且范围内而合规；变更后未重新取得同意"
+      }
+    },
+    {
+      "case_id": "S8",
+      "type": "范围·23-02",
+      "desc": "接收方把数据用于告知范围外的场景",
+      "input": {
+        "存在个人信息处理行为": true,
+        "已取得个人同意": true,
+        "属于第13条第二至七项情形": false,
+        "已告知处理者名称或姓名和联系方式": true,
+        "已告知处理目的、处理方式、信息种类、保存期限": true,
+        "已告知个人行使权利的方式和程序": true,
+        "对外提供": true,
+        "接收方为其他个人信息处理者": true,
+        "信息属于个人信息": true,
+        "已告知接收方名称或姓名": true,
+        "已告知接收方联系方式": true,
+        "已告知接收方的处理目的": true,
+        "已告知接收方的处理方式": true,
+        "已告知接收方的信息种类": true,
+        "已取得单独同意": true,
+        "接收方在告知范围内处理": false
+      },
+      "expect": {
+        "state": "evaluated",
+        "verdict": "不合规",
+        "triggered": [
+          "PIPL-13-01",
+          "PIPL-23-01",
+          "PIPL-23-02"
+        ],
+        "unmet": [
+          "PIPL-23-02:scope_compliance"
+        ],
+        "missing_count": 1,
+        "note": "接收方超出告知范围"
+      }
+    },
+    {
+      "case_id": "S9",
+      "type": "反例·边界",
+      "desc": "向境外自然人（非处理者）发送个人信息",
+      "input": {
+        "存在个人信息处理行为": true,
+        "已取得个人同意": true,
+        "属于第13条第二至七项情形": false,
+        "已告知处理者名称或姓名和联系方式": true,
+        "已告知处理目的、处理方式、信息种类、保存期限": true,
+        "已告知个人行使权利的方式和程序": true,
+        "向境外提供个人信息": true,
+        "境外接收方为个人信息处理者": false,
+        "已告知境外接收方名称或姓名": true,
+        "已告知境外接收方联系方式": true,
+        "已告知境外接收方的处理目的": true,
+        "已告知境外接收方的处理方式": true,
+        "已告知境外接收方的信息种类": true,
+        "已告知向境外接收方行使权利的方式和程序": true,
+        "已取得单独同意": true
+      },
+      "expect": {
+        "state": "evaluated",
+        "verdict": "合规",
+        "triggered": [
+          "PIPL-13-01",
+          "PIPL-39-01"
+        ],
+        "unmet": [],
+        "missing_count": 0,
+        "note": "境外接收方非处理者：仅触发39条，不触发23条"
+      }
+    },
+    {
+      "case_id": "S10",
+      "type": "叠加·去重",
+      "desc": "把指纹信息提供给合作方",
+      "input": {
+        "存在个人信息处理行为": true,
+        "已取得个人同意": true,
+        "属于第13条第二至七项情形": false,
+        "已告知处理者名称或姓名和联系方式": true,
+        "已告知处理目的、处理方式、信息种类、保存期限": true,
+        "已告知个人行使权利的方式和程序": true,
+        "对外提供": true,
+        "接收方为其他个人信息处理者": true,
+        "信息属于个人信息": true,
+        "处理敏感个人信息": true,
+        "已告知接收方名称或姓名": true,
+        "已告知接收方联系方式": true,
+        "已告知接收方的处理目的": true,
+        "已告知接收方的处理方式": true,
+        "已告知接收方的信息种类": true,
+        "已取得单独同意": false,
+        "已告知处理必要性": false,
+        "已告知对个人权益的影响": false,
+        "属于可不告知情形": false,
+        "法律行政法规要求书面同意": false,
+        "接收方在告知范围内处理": true
+      },
+      "expect": {
+        "state": "evaluated",
+        "verdict": "不合规",
+        "triggered": [
+          "PIPL-13-01",
+          "PIPL-23-01",
+          "PIPL-23-02",
+          "PIPL-29-01",
+          "PIPL-30-01"
+        ],
+        "unmet": [
+          "PIPL-23-01:separate_consent",
+          "PIPL-29-01:separate_consent",
+          "PIPL-30-01:extra_notice"
+        ],
+        "missing_count": 3,
+        "note": "单独同意被23与29同时要求，去重后只算1项（验证去重）"
+      }
+    },
+    {
+      "case_id": "S11",
+      "type": "★ 基线层",
+      "desc": "把用户手机号发给同事联系该客户；无任何同意记录",
+      "input": {
+        "存在个人信息处理行为": true,
+        "处理行为类型": "提供",
+        "接收方为其他个人信息处理者": false,
+        "已取得个人同意": false,
+        "属于第13条第二至七项情形": false,
+        "已告知处理者名称或姓名和联系方式": false,
+        "已告知处理目的、处理方式、信息种类、保存期限": false,
+        "已告知个人行使权利的方式和程序": false
+      },
+      "expect": {
+        "state": "evaluated",
+        "verdict": "不合规",
+        "triggered": [
+          "PIPL-13-01"
+        ],
+        "unmet": [
+          "PIPL-13-01:legal_basis",
+          "PIPL-13-01:notice_basic"
+        ],
+        "missing_count": 5,
+        "note": "向自然人提供：不触发23/39，仅基线兜底；无合法性基础即违反第10条"
+      }
+    },
+    {
+      "case_id": "S12",
+      "type": "★ 基线正例（新增）",
+      "desc": "内部员工绩效数据统计，已取得同意并完成告知",
+      "input": {
+        "存在个人信息处理行为": true,
+        "已取得个人同意": true,
+        "属于第13条第二至七项情形": false,
+        "已告知处理者名称或姓名和联系方式": true,
+        "已告知处理目的、处理方式、信息种类、保存期限": true,
+        "已告知个人行使权利的方式和程序": true
+      },
+      "expect": {
+        "state": "evaluated",
+        "verdict": "合规",
+        "triggered": [
+          "PIPL-13-01"
+        ],
+        "unmet": [],
+        "missing_count": 0,
+        "note": "基线正例：合法性基础与三项告知均满足"
+      }
+    },
+    {
+      "case_id": "S13",
+      "type": "★ 基线缺告知（新增）",
+      "desc": "收集用户邮箱用于发货通知，已取得同意但未告知保存期限与行权方式",
+      "input": {
+        "存在个人信息处理行为": true,
+        "已取得个人同意": true,
+        "属于第13条第二至七项情形": false,
+        "已告知处理者名称或姓名和联系方式": true,
+        "已告知处理目的、处理方式、信息种类、保存期限": false,
+        "已告知个人行使权利的方式和程序": false
+      },
+      "expect": {
+        "state": "evaluated",
+        "verdict": "不合规",
+        "triggered": [
+          "PIPL-13-01"
+        ],
+        "unmet": [
+          "PIPL-13-01:notice_basic"
+        ],
+        "missing_count": 2,
+        "note": "基线缺告知：缺保存期限与行权方式两项"
+      }
+    },
+    {
+      "case_id": "S14",
+      "type": "★ 未覆盖（新增）",
+      "desc": "输入缺少必要字段，无法判定是否属于个人信息处理",
+      "input": {
+        "场景": "某个内部流程，未提供结构化字段"
+      },
+      "expect": {
+        "state": "uncovered",
+        "verdict": "未覆盖",
+        "triggered": [],
+        "unmet": [],
+        "missing_count": 0,
+        "note": "字段不足以判定，必须转人工，禁止默认合规"
+      }
+    }
+  ]
+}
